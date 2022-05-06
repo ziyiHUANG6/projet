@@ -1,0 +1,596 @@
+#include <iostream>
+
+using std::cin;
+using std::cout;
+using std::endl;
+#include <iostream>
+
+using std::cin;
+using std::cout;
+using std::endl;
+
+template<typename T>
+class Stack
+{
+public:
+	Stack(int _size = 20) :size(_size), mtop(0)
+	{
+		data = new T[size]();
+	}
+	~Stack()
+	{
+		delete[] data;
+	}
+	bool empty()
+	{
+		return mtop == 0;
+	}
+	void push(int val)
+	{
+		if (Full())
+		{
+			throw std::exception("error: Stack is Full !");
+		}
+		data[mtop] = val;
+		mtop++;
+	}
+	T top()
+	{
+		if (empty())
+		{
+			throw std::exception("error: The stack is empty !");
+		}
+		return data[mtop - 1];
+	}
+	void pop()
+	{
+		if (empty())
+		{
+			throw std::exception("error: Stack is Empty !");
+		}
+		mtop--;
+	}
+	void show()
+	{
+		if (empty())
+		{
+			cout << endl;
+		}
+		else
+		{
+			int i = 0;
+			while (i < mtop)
+			{
+				cout << data[i] << " ";
+				i++;
+			}
+			cout << endl;
+		}
+	}
+private:
+	bool Full()
+	{
+		return mtop == size;
+	}
+	T* data;
+	int mtop;
+	int size;
+};
+
+class Calculator
+{
+public:
+	Calculator(int _size = 20) :size(_size), result(0)
+	{
+		str = new char[_size + 1]();
+	}
+	~Calculator()
+	{
+		delete[] str;
+	}
+	void setData()
+	{
+		cin.getline(str, size - 1); 		
+	}
+	void InfixToSuffix();		
+	void Compure();
+	double GetResult()
+	{
+		return result;
+	}
+private:
+	bool IsPop(char a, char b);
+	char* str;
+	double result;
+	int size;
+
+};
+
+
+int main()
+{
+	while (1) {
+		Calculator ca;
+		ca.setData();
+		ca.InfixToSuffix();
+		ca.Compure();
+		cout << ca.GetResult() << endl;
+
+	}
+	return 0;
+}
+
+
+
+
+bool Calculator::IsPop(char a, char b)	
+{
+	if (b == '(') return false;
+	if (a == '*' || a == '/')
+	{
+		if (b == '+' || b == '-')
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	//if (a == '+' || a == '-')
+	//{
+	return true;
+	//}
+}
+void Calculator::InfixToSuffix()
+{
+	char* des = new char[size]();
+	Stack<char> symbol;
+
+	int i = 0;
+	int k = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] == ' ')		
+		{
+			i++;
+			continue;
+		}
+		else if (str[i] == '(')	
+		{
+			symbol.push(str[i]);
+		}
+		else if (str[i] == ')')	
+		{
+			while (symbol.top() != '(')
+			{
+				des[k++] = symbol.top();
+				des[k++] = ' ';
+				symbol.pop();
+			}
+			symbol.pop();
+		}
+		else if (isdigit(str[i]))
+		{
+			des[k++] = str[i];
+			if (!isdigit(str[i + 1]))		
+			{
+				des[k++] = ' ';
+			}
+		}
+		else
+		{
+			switch (str[i])
+			{
+			case '+':case '-':case '*':case '/':
+				if (symbol.empty())		
+				{
+					symbol.push(str[i]);
+				}
+				else				
+				{
+					if (IsPop(str[i], symbol.top()))	
+					{
+						des[k++] = symbol.top();
+						symbol.pop();
+						continue;
+					}
+					else			
+					{
+						symbol.push(str[i]);
+					}
+				}
+				break;
+			default:
+				break;
+			}
+
+		}
+
+		i++;	
+	}
+	while (!symbol.empty())
+	{
+		des[k++] = symbol.top();
+		symbol.pop();
+	}
+	des[k] = '\0';
+
+	char* tmp = des;
+	des = str;
+	str = tmp;
+	delete[]des;
+}
+
+void Calculator::Compure()
+{
+	Stack<double> st;
+
+	int i = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] == ' ')		
+		{
+			i++;
+			continue;
+		}
+		else if (isdigit(str[i]))
+		{
+			double tmp = 0;
+			while (str[i] != ' ')
+			{
+				tmp = tmp * 10 + str[i] - '0';
+				i++;
+			}
+			st.push(tmp);
+		}
+		else if (!st.empty())	
+		{
+			double tmp = 0;
+			switch (str[i])
+			{
+			case '+':
+				tmp += st.top();
+				st.pop();
+				tmp += st.top();
+				st.pop();
+				st.push(tmp);
+				break;
+			case '-':
+				tmp -= st.top();
+				st.pop();
+				tmp += st.top();
+				st.pop();
+				st.push(tmp);
+				break;
+			case '*':
+				tmp = st.top();
+				st.pop();
+				tmp *= st.top();
+				st.pop();
+				st.push(tmp);
+				break;
+			case '/':
+			{
+				tmp = st.top();
+				st.pop();
+				if (tmp != 0)
+				{
+					tmp = st.top() / tmp;
+					st.pop();
+					st.push(tmp);
+				}
+				else
+				{
+					throw std::exception("error: Divisor of 0 ");
+				}
+			}
+			break;
+			default:
+				break;
+			}
+
+		}
+
+		i++;	
+	}
+
+	this->result = st.top();
+	st.top();
+}
+
+
+template<typename T>
+class Stack
+{
+public:
+	Stack(int _size = 20) :size(_size), mtop(0)
+	{
+		data = new T[size]();
+	}
+	~Stack()
+	{
+		delete[] data;
+	}
+	bool empty()
+	{
+		return mtop == 0;
+	}
+	void push(int val)
+	{
+		if (Full())
+		{
+			throw std::exception("error: Stack is Full !");
+		}
+		data[mtop] = val;
+		mtop++;
+	}
+	T top()
+	{
+		if (empty())
+		{
+			throw std::exception("error: The stack is empty !");
+		}
+		return data[mtop - 1];
+	}
+	void pop()
+	{
+		if (empty())
+		{
+			throw std::exception("error: Stack is Empty !");
+		}
+		mtop--;
+	}
+	void show()
+	{
+		if (empty())
+		{
+			cout << endl;
+		}
+		else
+		{
+			int i = 0;
+			while (i < mtop)
+			{
+				cout << data[i] << " ";
+				i++;
+			}
+			cout << endl;
+		}
+	}
+private:
+	bool Full()
+	{
+		return mtop == size;
+	}
+	T* data;
+	int mtop;
+	int size;
+};
+
+
+
+class Calculator
+{
+public:
+	Calculator(int _size = 20) :size(_size), result(0)
+	{
+		str = new char[_size + 1]();
+	}
+	~Calculator()
+	{
+		delete[] str;
+	}
+	void setData()
+	{
+		cin.getline(str, size - 1); 		
+	}
+
+	void InfixToSuffix();		
+	void Compure();
+	double GetResult()
+	{
+		return result;
+	}
+private:
+	bool IsPop(char a, char b);
+	char* str;
+	double result;
+	int size;
+
+};
+
+
+int main()
+{
+	while (1) {
+		Calculator ca;
+		ca.setData();
+		ca.InfixToSuffix();
+		ca.Compure();
+		cout << ca.GetResult() << endl;
+
+	}
+	return 0;
+}
+
+
+
+
+bool Calculator::IsPop(char a, char b)	
+{
+	if (b == '(') return false;
+	if (a == '*' || a == '/')
+	{
+		if (b == '+' || b == '-')
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	//if (a == '+' || a == '-')
+	//{
+	return true;
+	//}
+}
+void Calculator::InfixToSuffix()
+{
+	char* des = new char[size]();
+	Stack<char> symbol;
+
+	int i = 0;
+	int k = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] == ' ')		
+			i++;
+			continue;
+		}
+		else if (str[i] == '(')	
+		{
+			symbol.push(str[i]);
+		}
+		else if (str[i] == ')')	
+		{
+			while (symbol.top() != '(')
+			{
+				des[k++] = symbol.top();
+				des[k++] = ' ';
+				symbol.pop();
+			}
+			symbol.pop();
+		}
+		else if (isdigit(str[i]))
+		{
+			des[k++] = str[i];
+			if (!isdigit(str[i + 1]))		
+			{
+				des[k++] = ' ';
+			}
+		}
+		else
+		{
+			switch (str[i])
+			{
+			case '+':case '-':case '*':case '/':
+				if (symbol.empty())	
+				{
+					symbol.push(str[i]);
+				}
+				else				
+				{
+					if (IsPop(str[i], symbol.top()))
+					{
+						des[k++] = symbol.top();
+						symbol.pop();
+						continue;
+					}
+					else			
+					{
+						symbol.push(str[i]);
+					}
+				}
+				break;
+			default:
+				break;
+			}
+
+		}
+
+
+	}
+	while (!symbol.empty())
+	{
+		des[k++] = symbol.top();
+		symbol.pop();
+	}
+	des[k] = '\0';
+
+	char* tmp = des;
+	des = str;
+	str = tmp;
+	delete[]des;
+}
+
+void Calculator::Compure()
+{
+	
+	Stack<double> st;
+
+	int i = 0;
+	while (str[i] != '\0')
+	{
+
+		if (str[i] == ' ')		
+		{
+			i++;
+			continue;
+		}
+		else if (isdigit(str[i]))
+		{
+			double tmp = 0;
+			while (str[i] != ' ')
+			{
+				tmp = tmp * 10 + str[i] - '0';
+				i++;
+			}
+			st.push(tmp);
+		}
+		else if (!st.empty())		
+		{
+			double tmp = 0;
+			switch (str[i])
+			{
+			case '+':
+				tmp += st.top();
+				st.pop();
+				tmp += st.top();
+				st.pop();
+				st.push(tmp);
+				break;
+			case '-':
+				tmp -= st.top();
+				st.pop();
+				tmp += st.top();
+				st.pop();
+				st.push(tmp);
+				break;
+			case '*':
+				tmp = st.top();
+				st.pop();
+				tmp *= st.top();
+				st.pop();
+				st.push(tmp);
+				break;
+			case '/':
+			{
+				tmp = st.top();
+				st.pop();
+				if (tmp != 0)
+				{
+					tmp = st.top() / tmp;
+					st.pop();
+					st.push(tmp);
+				}
+				else
+				{
+					throw std::exception("error: Divisor of 0 ");
+				}
+			}
+			break;
+			default:
+				break;
+			}
+
+		}
+
+		i++;	
+	}
+
+	this->result = st.top();
+	st.top();
+}
+
